@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>化学与人体健康 · 小红的奇妙一天 | 翻页互动课堂</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0f2e9 0%, #c8e6df 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            font-size: 20px;  /* 基础字体加大，接近PPT 24号效果（一般PPT正文24pt约32px，但网页20px已很清晰，再加粗部分调整） */
+        }
+
+        /* 主翻页容器 */
+        .slides-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 35px rgba(0, 32, 16, 0.2);
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 每一页 slide */
+        .page {
+            display: none;
+            padding: 2rem 2rem 1.8rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active-page {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(12px);}
+            to { opacity: 1; transform: translateX(0);}
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            background: #1e5a4a;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-radius: 2rem 2rem 0 0;
+        }
+
+        .page-indicator {
+            color: white;
+            font-weight: bold;
+            background: #2c7a64;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: #f0bc6e;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #2d4a3e;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #ffd58c;
+            transform: scale(0.96);
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            border: 1px solid #cae3d9;
+        }
+
+        .scene-title {
+            font-size: 1.9rem;
+            font-weight: bold;
+            border-left: 10px solid #2c9b7a;
+            padding-left: 1rem;
+            margin-bottom: 1.2rem;
+            color: #1a4e3f;
+        }
+
+        .subtitle {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 1.2rem 0 1rem;
+            color: #2c7a64;
+            border-bottom: 2px dashed #b8dfd0;
+            padding-bottom: 0.4rem;
+        }
+
+        .flex-row, .grid-2 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .interactive-box {
+            background: #f9fffcf0;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: inset 0 0 0 1px #e2f0ea, 0 4px 8px rgba(0,0,0,0.02);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            margin: 1rem 0;
+        }
+        button, .quiz-option, select {
+            background: #eef6f2;
+            border: 1px solid #c0dfd3;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        select {
+            cursor: pointer;
+            background: white;
+        }
+        button:hover {
+            background: #cde9df;
+        }
+        .feedback {
+            margin-top: 0.7rem;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            background: #eef3ef;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .correct-fb {
+            background: #d4ecd9;
+            color: #196e47;
+            border-left: 5px solid #2b9e6e;
+        }
+        .wrong-fb {
+            background: #ffe5e5;
+            color: #b13e3e;
+            border-left: 5px solid #e66969;
+        }
+        .element-badge, .nutrient-badge {
+            display: inline-block;
+            background: #fff3e0;
+            border-radius: 2rem;
+            padding: 0.3rem 1rem;
+            margin: 0.3rem;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .hidden-answer {
+            background: #eef2f0;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            margin-top: 0.8rem;
+            text-align: center;
+        }
+        .reveal-btn {
+            background: #289672;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.9rem;
+        }
+        hr { margin: 1.2rem 0; border-color: #cce6dd; }
+        .nutrient-card {
+            background: #fef8e7;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border-left: 6px solid #e9b35f;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        @media (max-width: 700px) {
+            body { padding: 0.8rem; font-size: 18px; }
+            .page { padding: 1rem; }
+            .scene-title { font-size: 1.6rem; }
+            .subtitle { font-size: 1.4rem; }
+        }
+        .drug-rule {
+            background: #eef2fa;
+            border-radius: 1rem;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .vitamin-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .vitamin-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            flex: 1 1 200px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2efea;
+            font-size: 0.95rem;
+        }
+        .nutrition-item, .behavior-item {
+            margin-bottom: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        textarea {
+            font-size: 1rem;
+            padding: 0.8rem;
+            font-family: inherit;
+        }
+        .element-btn {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="slides-container">
+    <div class="nav-bar">
+        <div class="page-indicator" id="pageIndicator">第1幕 · 元素大挑战</div>
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn">◀ 上一幕</button>
+            <button class="nav-btn" id="nextBtn">下一幕 ▶</button>
+        </div>
+    </div>
+
+    <!-- ================= 页面 1：第一幕 + 第二幕前半（缺乏症+中毒）整合 ================= -->
+    <div class="page" id="page1">
+        <!-- 第一幕 元素归家 -->
+        <div class="card">
+            <div class="scene-title">🧩 第一幕 · 元素归家大挑战</div>
+            <p><strong>任务：</strong> 元素们迷路了！点击元素再选类别，分类正确才可帮它们回家。</p>
+            <div class="interactive-box">
+                <div id="elementsContainer" style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.8rem;"></div>
+                <div class="btn-group" id="categorySelector">
+                    <button data-cat="常量">🏠 常量元素</button>
+                    <button data-cat="微量">🏡 微量元素</button>
+                    <button data-cat="有害">🚫 有害元素</button>
+                </div>
+                <div id="elementFeedback" class="feedback">👉 先点选上方一个元素，再点击分类按钮</div>
+            </div>
+            <button class="reveal-btn" id="revealElementAnswer" style="margin-top: 0.5rem;">📖 教师展示完整分类表</button>
+            <div id="elementAnswerTable" style="display:none; margin-top: 0.5rem; background:#e9f3ef; border-radius:1rem; padding:0.8rem;"></div>
+            <p class="feedback" style="margin-top: 0.8rem;">💡 人体含量前四位 O,C,H,N 占96%；含量最多金属 → 钙(Ca)。</p>
+        </div>
+
+        <!-- 第二幕 缺乏症 + 中毒 -->
+        <div class="card">
+            <div class="scene-title">🩺 第二幕 · 街头名医大作战</div>
+            <div class="subtitle">🔍 缺乏什么？诊断开方！</div>
+            <div class="grid-2" id="deficiencyList"></div>
+            <div class="subtitle" style="margin-top: 1rem;">⚠️ 多了什么？& 中毒事件</div>
+            <div class="flex-row">
+                <div class="interactive-box" style="flex:1">
+                    <strong>🧂 爱吃咸菜的胖大叔</strong><br>高血压，爱吃咸肉咸菜。<br>
+                    <div class="btn-group"><button class="excessBtn" data-type="钠">限制钠 (Na)</button><button class="excessBtn" data-type="钾">补钾</button><button class="excessBtn" data-type="钙">补钙</button></div>
+                    <div id="excessFeedback" class="feedback"></div>
+                </div>
+                <div class="interactive-box" style="flex:1">
+                    <strong>💀 痛痛病（骨骼软化）</strong><br>
+                    <div class="btn-group"><button class="poisonBtn" data-poison="Cd">镉中毒</button><button class="poisonBtn" data-poison="Pb">铅中毒</button><button class="poisonBtn" data-poison="Hg">汞中毒</button></div>
+                    <div id="poison1Feedback" class="feedback"></div>
+                </div>
+                <div class="interactive-box" style="flex:1">
+                    <strong>🐟 水俣病（渔民颤抖）</strong><br>
+                    <div class="btn-group"><button class="poisonBtn" data-poison="Hg">汞中毒</button><button class="poisonBtn" data-poison="Cd">镉中毒</button></div>
+                    <div id="poison2Feedback" class="feedback"></div>
+                </div>
+            </div>
+            <p class="feedback">✨ 健康密码：钠过量→高血压；控盐是关键！重金属危害巨大。</p>
+        </div>
+    </div>
+
+    <!-- ================= 页面 2：六大营养素科普 + 维生素连线（含B1、B2） ================= -->
+    <div class="page" id="page2">
+        <div class="card">
+            <div class="scene-title">🥗 营养密码 · 六大基本营养素（生理功能科普）</div>
+            <div class="grid-2" style="gap: 1.2rem;">
+                <div class="nutrient-card"><strong>🍚 糖类（碳水化合物）</strong><br>主要供能物质，占每日能量60%~70%。构成细胞组织，维持大脑功能。来源：米面、薯类、谷物。</div>
+                <div class="nutrient-card"><strong>🍗 蛋白质</strong><br>生命活动的主要承担者，修复组织、构成酶和激素，可氧化供能。来源：肉、蛋、奶、豆类。</div>
+                <div class="nutrient-card"><strong>🧈 油脂（脂肪）</strong><br>备用能源，保护内脏，维持体温，帮助脂溶性维生素吸收。来源：植物油、动物脂肪、坚果。</div>
+                <div class="nutrient-card"><strong>🥬 维生素</strong><br>调节新陈代谢，不供能但不可或缺。缺乏导致脚气病、坏血病等。来源：蔬菜、水果、肝脏。</div>
+                <div class="nutrient-card"><strong>💧 水</strong><br>溶剂、运输营养、调节体温。占体重60%~70%，每天必需。来源：饮水、汤、食物。</div>
+                <div class="nutrient-card"><strong>⚡ 无机盐（矿物质）</strong><br>构成骨骼（钙）、血红蛋白（铁），维持体液平衡。常量/微量元素缺一不可。</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="subtitle">🥦 挑食危机 · 维生素缺乏症（配对抢答）</div>
+            <div class="interactive-box">
+                <div class="vitamin-grid">
+                    <div class="vitamin-card">缺乏维生素A → 
+                        <select class="vitamin-select" data-vita="A"><option value="">--选择--</option><option value="夜盲症">夜盲症</option><option value="坏血病">坏血病</option><option value="佝偻病">佝偻病</option><option value="脚气病">脚气病</option><option value="口角炎">口角炎</option></select>
+                        <span class="vita-fb"></span>
+                    </div>
+                    <div class="vitamin-card">缺乏维生素B₁ → 
+                        <select class="vitamin-select" data-vita="B1"><option value="">--选择--</option><option value="脚气病">脚气病</option><option value="口角炎">口角炎</option><option value="夜盲症">夜盲症</option><option value="坏血病">坏血病</option></select>
+                        <span class="vita-fb"></span>
+                    </div>
+                    <div class="vitamin-card">缺乏维生素B₂ → 
+                        <select class="vitamin-select" data-vita="B2"><option value="">--选择--</option><option value="口角炎">口角炎</option><option value="脚气病">脚气病</option><option value="佝偻病">佝偻病</option><option value="夜盲症">夜盲症</option></select>
+                        <span class="vita-fb"></span>
+                    </div>
+                    <div class="vitamin-card">缺乏维生素C → 
+                        <select class="vitamin-select" data-vita="C"><option value="">--选择--</option><option value="坏血病">坏血病</option><option value="脚气病">脚气病</option><option value="口角炎">口角炎</option><option value="夜盲症">夜盲症</option></select>
+                        <span class="vita-fb"></span>
+                    </div>
+                    <div class="vitamin-card">缺乏维生素D → 
+                        <select class="vitamin-select" data-vita="D"><option value="">--选择--</option><option value="佝偻病/骨质疏松">佝偻病/骨质疏松</option><option value="夜盲症">夜盲症</option><option value="坏血病">坏血病</option><option value="脚气病">脚气病</option></select>
+                        <span class="vita-fb"></span>
+                    </div>
+                </div>
+                <button id="checkVitaminsBtn" style="margin-top: 12px;">🔍 验证维生素配对</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="subtitle">🍽️ 午餐大闯关 · 找营养素</div>
+            <p><strong>今日午餐：</strong> 米饭、炸鸡排、炒菠菜、牛奶、矿泉水</p>
+            <div id="nutritionQuiz">
+                <div class="nutrition-item">🍚 米饭 → 主要营养素？ <select class="nutrition-select" data-food="米饭"><option value="">--选择--</option><option value="糖类">糖类</option><option value="蛋白质">蛋白质</option></select> <span class="nutri-fb"></span></div>
+                <div class="nutrition-item">🍗 炸鸡排 → 主要营养素？ <select class="nutrition-select" data-food="炸鸡排"><option value="">--选择--</option><option value="蛋白质">蛋白质</option><option value="油脂">油脂</option></select> <span class="nutri-fb"></span></div>
+                <div class="nutrition-item">🥬 炒菠菜 → 主要提供？ <select class="nutrition-select" data-food="炒菠菜"><option value="">--选择--</option><option value="维生素和无机盐">维生素/无机盐</option><option value="糖类">糖类</option></select> <span class="nutri-fb"></span></div>
+                <div class="nutrition-item">🥛 牛奶 → 提供哪些营养素？ <select class="nutrition-select" data-food="牛奶"><option value="">--选择--</option><option value="蛋白质+水+无机盐">蛋白质+水+无机盐</option><option value="糖类">糖类</option></select> <span class="nutri-fb"></span></div>
+                <button id="checkNutritionBtn" style="margin-top: 8px;">✅ 核对营养素答案</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 页面 3：核心解密（糖脂蛋方程式）+ 午餐设计智能分析 ================= -->
+    <div class="page" id="page3">
+        <div class="card">
+            <div class="scene-title">⚡ 核心解密 · 糖类 / 油脂 / 蛋白质的化学旅程</div>
+            <div class="grid-2">
+                <div class="interactive-box"><strong>🍚 淀粉 → 葡萄糖 → 能量</strong><br>水解为葡萄糖(C₆H₁₂O₆)<br><button class="reveal-btn" id="revealGlucoseEq">🔬 展示氧化方程式</button><div id="glucoseEq" style="display:none; margin-top:8px;">C₆H₁₂O₆ + 6O₂ —酶→ 6CO₂ + 6H₂O (每克约16 kJ)</div></div>
+                <div class="interactive-box"><strong>🧈 油脂 · 备用电池</strong><br>植物油(液态油) vs 动物脂肪(固态)<br><button class="reveal-btn" id="revealOilInfo">💡 油脂产能秘密</button><div id="oilInfo" style="display:none;">相同质量油脂氧化放热比糖类更多！成人体内脂肪约占10%~20%。</div></div>
+                <div class="interactive-box"><strong>🍗 蛋白质 · 身体砖块</strong><br>蛋白质→氨基酸→重组/氧化<br><button class="reveal-btn" id="revealProteinInfo">🧬 两条出路</button><div id="proteinInfo" style="display:none;">① 重组人体蛋白质；② 氧化供能，生成尿素+CO₂+H₂O。</div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="scene-title">📝 实战演练 · 中考学霸专属午餐设计（营养分析）</div>
+            <p>请设计一份营养均衡的午餐，需包含糖类、蛋白质、维生素、无机盐等。系统将根据你的描述分析营养素比例。</p>
+            <textarea id="designLunch" rows="3" style="width:100%; border-radius:1rem; padding:0.8rem; border:1px solid #cbdcd4; font-size:1rem;"></textarea>
+            <button id="submitDesignBtn" style="margin-top: 0.8rem;">🥗 分析我的午餐搭配</button>
+            <div id="designFeedback" class="feedback" style="margin-top: 0.8rem; white-space: pre-line;"></div>
+            <p class="feedback" style="margin-top: 0.5rem;">💡 小贴士：均衡午餐应有主食(糖类)、优质蛋白、足量蔬菜水果(维生素/矿物质)、适量好油脂。</p>
+        </div>
+    </div>
+
+    <!-- ================= 页面 4：药品红绿灯 + 合理用药行为判断 ================= -->
+    <div class="page" id="page4">
+        <div class="card">
+            <div class="scene-title">💊 第四幕 · 健康小课堂 & 家庭药箱抉择</div>
+            <div class="drug-rule">
+                <strong>🚦 药品“交通信号灯”使用要求</strong><br>
+                🛑 <strong>Rx (处方药)</strong>：必须凭执业医师处方购买，严格遵医嘱使用，不可自行增减或停药。<br>
+                🔴 <strong>红色 OTC (甲类非处方药)</strong>：无需处方，但需在药师指导下购买和使用，安全性相对较低，需按说明书剂量服用。<br>
+                🟢 <strong>绿色 OTC (乙类非处方药)</strong>：安全性最高，除药店外在超市、便利店也可购买，但依然要按说明书使用，不可超量。
+            </div>
+            <div class="subtitle">⚖️ 用药行为判断（点击按钮分析对错）</div>
+            <div id="drugBehaviorQuiz">
+                <div class="behavior-item">行为A：感冒清热颗粒(绿OTC)+阿莫西林(Rx)一起吃 <button class="behaviorAns" data-behavior="A" data-correct="wrong">判断对错</button> <span class="behavior-fb"></span></div>
+                <div class="behavior-item">行为B：一次性吃两包红色OTC感冒药，好得快 <button class="behaviorAns" data-behavior="B" data-correct="wrong">判断对错</button> <span class="behavior-fb"></span></div>
+                <div class="behavior-item">行为C：胃酸过多，嚼碎含氢氧化铝的胃药(中和反应) <button class="behaviorAns" data-behavior="C" data-correct="correct">判断对错</button> <span class="behavior-fb"></span></div>
+                <div class="behavior-item">行为D：用热牛奶送服感冒药(苦) <button class="behaviorAns" data-behavior="D" data-correct="wrong">判断对错</button> <span class="behavior-fb"></span></div>
+            </div>
+            <div class="interactive-box" style="margin-top: 1rem;">
+                <strong>🧪 化学中和反应式：</strong> Al(OH)₃ + 3HCl = AlCl₃ + 3H₂O (治疗胃酸过多)
+            </div>
+        </div>
+        <div class="card">
+            <div class="scene-title">📚 课后任务</div>
+            <p>1️⃣ 调查厨房：加碘盐、加铁酱油补充了什么元素？低钠盐的意义是什么？<br>
+            2️⃣ 调查家庭药箱：找出一盒药，分辨它是红色OTC、绿色OTC还是Rx，并记录有效化学成分。</p>
+            <p style="margin-top: 0.5rem; font-style: italic;">🎭 剧终 · 化学守护生命健康！</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 全局翻页逻辑 ----------
+    const pages = [document.getElementById("page1"), document.getElementById("page2"), document.getElementById("page3"), document.getElementById("page4")];
+    let currentPage = 0;
+    const pageIndicator = document.getElementById("pageIndicator");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const titles = ["第1幕 · 元素迷途&街头名医", "第2幕 · 营养素科普&维生素挑战", "第3幕 · 核心解密&智能午餐设计", "第4幕 · 药品安全&课后任务"];
+
+    function updatePage() {
+        pages.forEach((p, idx) => {
+            if (idx === currentPage) p.classList.add("active-page");
+            else p.classList.remove("active-page");
+        });
+        pageIndicator.innerText = titles[currentPage];
+    }
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 0) { currentPage--; updatePage(); }
+    });
+    nextBtn.addEventListener("click", () => {
+        if (currentPage < pages.length-1) { currentPage++; updatePage(); }
+    });
+    updatePage();
+
+    // ========== 以下所有互动功能 ==========
+    // 元素列表：乱序排列（混合常量、微量、有害）
+    const rawElements = ["O","C","H","N","Ca","P","K","S","Na","Cl","Mg","Fe","I","F","Zn","Hg","Pb","Cr","Cd"];
+    // 手动打乱顺序（Fisher-Yates随机），保证每次加载顺序不同但可重现，这里固定打乱一次，让排列无规律
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    // 使用乱序后的元素列表，使排布没有明显规律
+    const elementList = shuffleArray([...rawElements]);
+    
+    const elementCategory = { "常量": ["O","C","H","N","Ca","P","K","S","Na","Cl","Mg"], "微量": ["Fe","I","F","Zn"], "有害": ["Hg","Pb","Cr","Cd"] };
+    let selectedElement = null;
+    function buildElementsUI() {
+        const container = document.getElementById("elementsContainer");
+        container.innerHTML = "";
+        elementList.forEach(el => {
+            const btn = document.createElement("button");
+            btn.textContent = el;
+            btn.classList.add("element-btn");
+            btn.style.background = "#f4f0e6";
+            btn.style.fontSize = "1rem";
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".element-btn").forEach(b => b.style.background = "#f4f0e6");
+                btn.style.background = "#b9dfd0";
+                selectedElement = el;
+                document.getElementById("elementFeedback").innerHTML = `当前选中: <strong>${el}</strong> ，请点击分类按钮`;
+            });
+            container.appendChild(btn);
+        });
+    }
+    function checkElementCategory(cat) {
+        if(!selectedElement) { document.getElementById("elementFeedback").innerHTML = "⚠️ 请先点击一个元素！"; return; }
+        const correctList = elementCategory[cat];
+        const isCorrect = correctList.includes(selectedElement);
+        const fbDiv = document.getElementById("elementFeedback");
+        if(isCorrect) {
+            fbDiv.innerHTML = `✅ 正确！${selectedElement} 属于 ${cat}元素。${cat==="常量"?"🏠大别墅":(cat==="微量"?"🏡小木屋":"🚫隔离区")}`;
+            fbDiv.className = "feedback correct-fb";
+        } else {
+            let correctCat = "";
+            for(let k in elementCategory) if(elementCategory[k].includes(selectedElement)) correctCat = k;
+            fbDiv.innerHTML = `❌ 错误！${selectedElement} 属于 ${correctCat||"其他"}，再试试。`;
+            fbDiv.className = "feedback wrong-fb";
+        }
+    }
+    document.querySelectorAll("#categorySelector button").forEach(btn => btn.addEventListener("click", (e) => checkElementCategory(btn.getAttribute("data-cat"))));
+    document.getElementById("revealElementAnswer").addEventListener("click", () => {
+        const tbl = document.getElementById("elementAnswerTable");
+        if(tbl.style.display === "none") {
+            tbl.innerHTML = `<strong>📌 正确分类：</strong><br>🏠常量: O,C,H,N,Ca,P,K,S,Na,Cl,Mg <br>🏡微量: Fe,I,F,Zn <br>🚫有害: Hg,Pb,Cr,Cd`;
+            tbl.style.display = "block";
+        } else tbl.style.display = "none";
+    });
+    buildElementsUI();
+
+    // 缺乏症数据
+    const deficiencyData = [
+        { symptom: "老爷爷：腿抽筋、骨质疏松", correct: "钙", options: ["钙","铁","锌"] },
+        { symptom: "阿姨：贫血", correct: "铁", options: ["铁","碘","钾"] },
+        { symptom: "运动员：肌肉痉挛，四肢无力", correct: "钾", options: ["钾","钠","钙"] },
+        { symptom: "小弟弟：食欲不振，瘦小", correct: "锌", options: ["锌","氟","镁"] },
+        { symptom: "小孩：龋齿、黑牙", correct: "氟", options: ["氟","钙","磷"] },
+        { symptom: "大叔：甲状腺肿大", correct: "碘", options: ["碘","铁","锌"] }
+    ];
+    function buildDeficiency() {
+        const container = document.getElementById("deficiencyList");
+        container.innerHTML = "";
+        deficiencyData.forEach((item, idx) => {
+            const div = document.createElement("div");
+            div.className = "interactive-box";
+            div.innerHTML = `<strong>👤 ${item.symptom}</strong><br>需要补充？<div class="btn-group" data-def-idx="${idx}">${item.options.map(opt => `<button class="defBtn" data-def="${idx}" data-value="${opt}">${opt}</button>`).join('')}</div><div id="defFb${idx}" class="feedback"></div>`;
+            container.appendChild(div);
+        });
+        document.querySelectorAll(".defBtn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const idx = parseInt(btn.getAttribute("data-def"));
+                const selected = btn.getAttribute("data-value");
+                const correct = deficiencyData[idx].correct;
+                const fbDiv = document.getElementById(`defFb${idx}`);
+                if(selected === correct) { fbDiv.innerHTML = `✅ 正确！补充 ${correct}。`; fbDiv.className = "feedback correct-fb"; }
+                else { fbDiv.innerHTML = `❌ 不对，应补充 ${correct}。`; fbDiv.className = "feedback wrong-fb"; }
+            });
+        });
+    }
+    buildDeficiency();
+
+    // 过量钠 & 中毒
+    document.querySelectorAll(".excessBtn").forEach(btn => btn.addEventListener("click", () => {
+        const fb = document.getElementById("excessFeedback");
+        if(btn.getAttribute("data-type") === "钠") { fb.innerHTML = "✅ 正确！高血压应限制钠(盐)摄入。"; fb.className = "feedback correct-fb"; }
+        else { fb.innerHTML = "❌ 错误！高血压关键是限制钠。"; fb.className = "feedback wrong-fb"; }
+    }));
+    function setupPoison(btnsClass, fbId, correctVal, hint) {
+        document.querySelectorAll(btnsClass).forEach(btn => btn.addEventListener("click", () => {
+            const chosen = btn.getAttribute("data-poison");
+            const fb = document.getElementById(fbId);
+            if(chosen === correctVal) { fb.innerHTML = `✅ 正确！致病真凶是 ${correctVal}。${hint}`; fb.className = "feedback correct-fb"; }
+            else { fb.innerHTML = `❌ 不对！该病由 ${correctVal} 引起。`; fb.className = "feedback wrong-fb"; }
+        }));
+    }
+    setupPoison(".poisonBtn[data-poison='Cd']", "poison1Feedback", "Cd", "镉中毒→痛痛病。");
+    setupPoison(".poisonBtn[data-poison='Hg']", "poison2Feedback", "Hg", "汞中毒→水俣病。");
+
+    // 维生素配对（含B1、B2）
+    const vitaminCorrect = {
+        "A": "夜盲症",
+        "B1": "脚气病",
+        "B2": "口角炎",
+        "C": "坏血病",
+        "D": "佝偻病/骨质疏松"
+    };
+    document.getElementById("checkVitaminsBtn").addEventListener("click", () => {
+        document.querySelectorAll(".vitamin-select").forEach(sel => {
+            const vita = sel.getAttribute("data-vita");
+            const user = sel.value;
+            const fbSpan = sel.parentElement.querySelector(".vita-fb");
+            if(!user) { fbSpan.innerHTML = "请选择"; return; }
+            if(vitaminCorrect[vita] === user) { fbSpan.innerHTML = "✔ 正确"; fbSpan.style.color = "#196e47"; }
+            else { fbSpan.innerHTML = `✘ 应是 ${vitaminCorrect[vita]}`; fbSpan.style.color = "#b13e3e"; }
+        });
+    });
+
+    // 营养素识别
+    const nutritionAnswers = { "米饭":"糖类", "炸鸡排":"蛋白质", "炒菠菜":"维生素和无机盐", "牛奶":"蛋白质+水+无机盐" };
+    document.getElementById("checkNutritionBtn").addEventListener("click", () => {
+        document.querySelectorAll(".nutrition-select").forEach(sel => {
+            const food = sel.getAttribute("data-food");
+            const user = sel.value;
+            const fbSpan = sel.parentElement.querySelector(".nutri-fb");
+            if(!user) { fbSpan.innerHTML = "未选"; return; }
+            if(nutritionAnswers[food] === user) fbSpan.innerHTML = "✓ 正确！";
+            else fbSpan.innerHTML = `✗ 正确答案: ${nutritionAnswers[food]}`;
+        });
+    });
+
+    // 核心解密按钮
+    document.getElementById("revealGlucoseEq").addEventListener("click",()=>{ document.getElementById("glucoseEq").style.display = document.getElementById("glucoseEq").style.display==="none"?"block":"none"; });
+    document.getElementById("revealOilInfo").addEventListener("click",()=>{ document.getElementById("oilInfo").style.display = document.getElementById("oilInfo").style.display==="none"?"block":"none"; });
+    document.getElementById("revealProteinInfo").addEventListener("click",()=>{ document.getElementById("proteinInfo").style.display = document.getElementById("proteinInfo").style.display==="none"?"block":"none"; });
+
+    // 智能午餐设计分析
+    function analyzeNutrition(description) {
+        const text = description.toLowerCase();
+        let analysis = [];
+        const carbKeywords = ["米饭","饭","面条","馒头","面包","粥","土豆","红薯","玉米","谷物"];
+        const hasCarb = carbKeywords.some(k => text.includes(k));
+        if(!hasCarb) analysis.push("⚠️ 缺少主食（糖类）！应补充米饭、面条等提供能量。");
+        else analysis.push("✅ 包含主食（糖类），提供基础能量。");
+        
+        const proteinKeywords = ["肉","鱼","虾","鸡","鸭","牛肉","猪肉","蛋","豆腐","豆制品","牛奶","酸奶","蛋白"];
+        const hasProtein = proteinKeywords.some(k => text.includes(k));
+        if(!hasProtein) analysis.push("⚠️ 优质蛋白质不足！建议加入鱼、肉、蛋或豆制品。");
+        else analysis.push("✅ 含有蛋白质，帮助组织修复。");
+        
+        const vegKeywords = ["蔬菜","青菜","菠菜","西兰花","胡萝卜","番茄","黄瓜","白菜","生菜","芹菜"];
+        const hasVeg = vegKeywords.some(k => text.includes(k));
+        if(!hasVeg) analysis.push("⚠️ 缺乏蔬菜！维生素和矿物质不足，影响新陈代谢。");
+        else analysis.push("✅ 有蔬菜，提供维生素和无机盐。");
+        
+        const fatKeywords = ["油","炸","肥肉","坚果","花生油","橄榄油","黄油"];
+        const hasFat = fatKeywords.some(k => text.includes(k));
+        if(!hasFat) analysis.push("📌 油脂含量较少，可加少许植物油或坚果补充健康脂肪。");
+        else analysis.push("⚖️ 含有油脂，注意适量，避免过量摄入饱和脂肪。");
+        
+        const fruitKeywords = ["苹果","香蕉","橙子","水果","猕猴桃","草莓","梨"];
+        const hasFruit = fruitKeywords.some(k => text.includes(k));
+        if(!hasFruit) analysis.push("🍎 可额外添加一份水果，补充维生素C和膳食纤维。");
+        else analysis.push("🍊 搭配水果，维生素更全面！");
+        
+        if(!text.includes("水") && !text.includes("汤") && !text.includes("牛奶")) analysis.push("💧 别忘了充足饮水，水是重要营养素。");
+        return analysis;
+    }
+
+    document.getElementById("submitDesignBtn").addEventListener("click", () => {
+        const text = document.getElementById("designLunch").value.trim();
+        const fbDiv = document.getElementById("designFeedback");
+        if(text === "") { fbDiv.innerHTML = "✏️ 请先设计一份午餐，再点击分析！"; fbDiv.className = "feedback wrong-fb"; return; }
+        const tips = analyzeNutrition(text);
+        let result = "📊 营养分析结果：\n" + tips.join("\n");
+        result += "\n\n⭐ 均衡原则：主食+高蛋白+足量蔬菜+少量优质油脂+水果/水。合理搭配更健康！";
+        fbDiv.innerHTML = result;
+        fbDiv.className = "feedback correct-fb";
+    });
+
+    // 用药行为判断
+    document.querySelectorAll(".behaviorAns").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const behavior = btn.getAttribute("data-behavior");
+            const correctFlag = btn.getAttribute("data-correct");
+            const fbSpan = btn.parentElement.querySelector(".behavior-fb");
+            let msg = "";
+            if(behavior === "A") msg = "❌ 错误！阿莫西林是Rx处方药，不可与绿OTC随意混用，需医生指导。";
+            else if(behavior === "B") msg = "❌ 错误！红色OTC必须按说明书或药师指导剂量服用，不可加倍。";
+            else if(behavior === "C") msg = "✅ 正确！氢氧化铝中和胃酸，化学反应缓解胃痛，合理用药。";
+            else if(behavior === "D") msg = "❌ 错误！牛奶影响药效，应温水送服。";
+            fbSpan.innerHTML = msg;
+            fbSpan.className = (behavior==="C" && correctFlag==="correct") ? "feedback correct-fb" : "feedback wrong-fb";
+        });
+    });
+</script>
+</body>
+</html>
